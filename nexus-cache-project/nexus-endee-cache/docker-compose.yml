@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  endee:
+    image: endeeio/endee-server:latest
+    container_name: endee-vector-db
+    ports:
+      - "8080:8080"
+    environment:
+      - NDD_NUM_THREADS=0  # Auto-detect CPU cores
+      - NDD_AUTH_TOKEN=  # Leave empty for no auth (development)
+    volumes:
+      - endee-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nexus-network
+
+  # Optional: Add the API service here if deploying together
+  # nexus-api:
+  #   build: .
+  #   container_name: nexus-cache-api
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - ENDEE_HOST=endee
+  #     - ENDEE_PORT=8080
+  #   depends_on:
+  #     endee:
+  #       condition: service_healthy
+  #   networks:
+  #     - nexus-network
+
+volumes:
+  endee-data:
+    driver: local
+
+networks:
+  nexus-network:
+    driver: bridge
